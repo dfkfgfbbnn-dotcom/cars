@@ -1,0 +1,16 @@
+2025-11-20 08:16:36 - Request: POST action=login Body: {"username":"admin","password":"12345"}
+2025-11-20 08:16:48 - Request: POST action=add Body: {"name":"coroola","model":"kia","price":"244444"}
+2025-11-20 08:16:54 - Request: POST action=add Body: {"name":"coroola","model":"kia","price":"244444"}
+2025-11-20 08:17:40 - Request: POST action=login Body: {"username":"admin","password":"12345"}
+2025-11-20 08:17:52 - Request: POST action=add Body: {"name":"coroola","model":"toyota","price":"2783237"}
+2025-11-20 08:18:06 - Request: GET  Body: 
+2025-11-20 08:18:26 - Request: POST action=login Body: {"username":"admin","password":"12345"}
+2025-11-20 08:18:42 - Request: POST action=add Body: {"name":"coroola","model":"toyota","price":"373827"}
+2025-11-20 08:20:49 - Request: POST action=login Body: {"username":"admin","password":"12345"}
+2025-11-20 08:21:03 - Request: POST action=add Body: {"name":"coroola","model":"toyota","price":"37233"}
+2025-11-20 08:21:07 - Request: GET  Body: 
+2025-11-20 08:21:18 - Request: GET id=4 Body: 
+2025-11-20 08:22:37 - Request: POST action=login Body: {"username":"admin","password":"12345"}
+2025-11-20 08:22:39 - Request: GET  Body: 
+2025-11-20 08:22:45 - Request: GET id=3 Body: 
+2025-11-20 08:22:55 - Request: POST action=add Body: {"name":"coroola","model":"toyota","price":"34343"}

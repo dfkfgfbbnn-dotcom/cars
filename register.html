@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Cars System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+
+  <div class="login-container">
+    <div class="login-card">
+      <h2>Create Account</h2>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" required>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" required>
+        </div>
+
+        <button type="submit" class="btn-login">Register</button>
+      </form>
+
+      <p id="msg" class="message"></p>
+      <p><a href="login.html">Back to Login</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("msg");
+
+      msg.textContent = "";
+
+      try {
+        const res = await fetch("http://localhost/cars_project/register.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = "Account created successfully!";
+          msg.className = "message success";
+        } else {
+          msg.textContent = data.message || "Registration failed";
+          msg.className = "message error";
+        }
+      } catch {
+        msg.textContent = "Cannot reach server";
+        msg.className = "message error";
+      }
+    });
+  </script>
+
+</body>
+</html>

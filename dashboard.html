@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cars Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ---- نفس ستايل login.html ---- */
+    body.login-page {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background: #f0f2f5;
+      font-family: Arial, sans-serif;
+      padding: 30px 0;
+    }
+
+    .dashboard-container {
+      width: 100%;
+      max-width: 950px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 25px 30px;
+    }
+
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #333;
+    }
+    .dashboard-header p {
+      margin: 5px 0 20px;
+      color: #666;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    input, select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover { background-color: #0056b3; }
+    #btnFilter { background-color: #28a745; }
+    #btnFilter:hover { background-color: #218838; }
+
+    #status {
+      margin: 10px 0;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #out {
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin: 8px 0;
+      background: #fafafa;
+    }
+
+    h2 { margin-top: 20px; color: #333; }
+
+    @media (max-width: 600px) {
+      .row { flex-direction: column; }
+      input, select, button { width: 100%; }
+    }
+  </style>
+</head>
+<body class="login-page">
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1>🚗 Cars Dashboard</h1>
+      <p>Manage your cars easily</p>
+    </div>
+
+    <!-- Filter Cars -->
+    <h2>Filter Cars</h2>
+    <div class="row">
+      <input id="filterInput" type="text" placeholder="Search by brand or model">
+      <select id="sortSelect">
+        <option value="yearAsc">Year: Low → High</option>
+        <option value="yearDesc">Year: High → Low</option>
+        <option value="priceAsc">Price: Low → High</option>
+        <option value="priceDesc">Price: High → Low</option>
+      </select>
+      <button id="btnFilter">Search</button>
+    </div>
+
+    <!-- Load / Load One / Logout -->
+    <div class="row">
+      <button id="btnAll">Load All Cars</button>
+      <input id="carId" type="number" placeholder="Car ID">
+      <button id="btnOne">Load One Car</button>
+      <button id="btnLogout">Logout</button>
+    </div>
+
+    <!-- Add Car -->
+    <h2>Add Car</h2>
+    <div class="row">
+      <input id="brand" placeholder="Brand (e.g., Toyota)">
+      <input id="model" placeholder="Model (e.g., Camry)">
+      <input id="year" type="number" placeholder="Year (e.g., 2021)">
+      <input id="color" placeholder="Color (e.g., White)">
+      <input id="price" type="number" placeholder="Price (e.g., 20000)">
+      <button id="btnAdd">Add Car</button>
+    </div>
+
+    <div id="status">Ready</div>
+    <div id="out"></div>
+  </div>
+
+  <script>
+    const API_URL = "api.php";
+
+    function getToken() { return localStorage.getItem("token") || ""; }
+    function requireLogin() { if(!getToken()){ window.location.href="login.html"; return false;} return true; }
+    function setStatus(msg){ document.getElementById("status").innerText = msg; }
+
+    function renderCars(cars) {
+      const out = document.getElementById("out");
+      if (!Array.isArray(cars)) { out.innerHTML = ""; return; }
+      out.innerHTML = cars.map(c=>`
+        <div class="card">
+          <b>${c.brand} ${c.model}</b> (${c.year}) - ${c.color} 
+          ${c.price ? "- $" + c.price : ""} 
+          <span style="color:#666">[id=${c.id}]</span>
+        </div>
+      `).join("");
+    }
+
+    function renderOneCar(car) {
+      const out = document.getElementById("out");
+      if (!car || !car.id){ out.innerHTML=""; return; }
+      out.innerHTML = `<div class="card"><b>${car.brand} ${car.model}</b> (${car.year}) - ${car.color} ${car.price ? "- $" + car.price : ""} <span style="color:#666">[id=${car.id}]</span></div>`;
+    }
+
+    async function apiFetch(url, options={}) {
+      const token = getToken();
+      const headers = options.headers||{};
+      headers["Authorization"] = "Bearer "+token;
+      if(options.body && !(options.body instanceof FormData)){ headers["Content-Type"]="application/json"; }
+      const res = await fetch(url,{...options, headers});
+      if(res.status===401){ localStorage.removeItem("token"); window.location.href="login.html"; return null; }
+      let data=null; try{ data=await res.json(); } catch(e){ data=null; }
+      return {status: res.status, data};
+    }
+
+    // Load All Cars
+    document.getElementById("btnAll").addEventListener("click", async ()=>{
+      if(!requireLogin()) return;
+      setStatus("Loading all cars...");
+      const result = await apiFetch(API_URL,{method:"GET"});
+      if(!result) return;
+      if(result.status===200){ setStatus("Loaded"); renderCars(result.data); } 
+      else { setStatus("Error"); document.getElementById("out").innerText=JSON.stringify(result.data);}
+    });
+
+    // Load One Car
+    document.getElementById("btnOne").addEventListener("click", async ()=>{
+      if(!requireLogin()) return;
+      const id=document.getElementById("carId").value.trim();
+      if(!id){ setStatus("Enter Car ID"); return; }
+      setStatus("Loading car #" + id + "...");
+      const result = await apiFetch(API_URL + "?id=" + encodeURIComponent(id),{method:"GET"});
+      if(!result) return;
+      if(result.status===200){ setStatus("Loaded"); renderOneCar(result.data); } 
+      else { setStatus("Not found / Error"); document.getElementById("out").innerText=JSON.stringify(result.data);}
+    });
+
+    // Add Car
+    document.getElementById("btnAdd").addEventListener("click", async ()=>{
+      if(!requireLogin()) return;
+      const brand=document.getElementById("brand").value.trim();
+      const model=document.getElementById("model").value.trim();
+      const year=parseInt(document.getElementById("year").value.trim(),10);
+      const color=document.getElementById("color").value.trim();
+      const price=parseFloat(document.getElementById("price").value.trim()) || 0;
+      if(!brand||!model||!year||!color){ setStatus("Fill all fields"); return; }
+      setStatus("Adding car...");
+      const result=await apiFetch(API_URL,{method:"POST", body:JSON.stringify({brand,model,year,color,price})});
+      if(!result) return;
+      if(result.status===201){ 
+        setStatus("✅ Car added (id="+result.data.id+")"); 
+        document.getElementById("btnAll").click(); 
+        document.getElementById("brand").value=""; 
+        document.getElementById("model").value=""; 
+        document.getElementById("year").value=""; 
+        document.getElementById("color").value=""; 
+        document.getElementById("price").value="";
+      } else { setStatus("Error adding car"); document.getElementById("out").innerText=JSON.stringify(result.data);}
+    });
+
+    // Filter Cars
+    document.getElementById("btnFilter").addEventListener("click", async ()=>{
+      if(!requireLogin()) return;
+      const query = document.getElementById("filterInput").value.trim();
+      const sortOption = document.getElementById("sortSelect").value;
+      if(!query){ setStatus("Enter search term"); return; }
+      setStatus("Searching cars...");
+
+      const result = await apiFetch(API_URL + "?search=" + encodeURIComponent(query), {method:"GET"});
+      if(!result) return;
+
+      if(result.status===200){
+        let cars = result.data;
+
+        // Sorting
+        if(sortOption === "yearAsc") cars.sort((a,b)=>a.year - b.year);
+        else if(sortOption === "yearDesc") cars.sort((a,b)=>b.year - a.year);
+        else if(sortOption === "priceAsc") cars.sort((a,b)=> (a.price||0) - (b.price||0));
+        else if(sortOption === "priceDesc") cars.sort((a,b)=> (b.price||0) - (a.price||0));
+
+        setStatus(`Found ${cars.length} cars`);
+        renderCars(cars);
+      } else {
+        setStatus("No cars found / Error");
+        document.getElementById("out").innerText=JSON.stringify(result.data);
+      }
+    });
+
+    // Logout
+    document.getElementById("btnLogout").addEventListener("click", ()=>{
+      localStorage.removeItem("token");
+      window.location.href="login.html";
+    });
+
+    requireLogin();
+  </script>
+
+</body>
+</html>
+

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Cars System</title>
+  <style>
+    /* تصميم سريع لضمان ظهور الزر */
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin:0; }
+    .login-container { max-width: 400px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1, h2 { text-align: center; }
+    .form-group { margin-bottom: 15px; position: relative; }
+    input { width: 100%; padding: 10px; box-sizing: border-box; }
+    .btn-login, .btn-register { width: 100%; padding: 12px; border:none; border-radius: 5px; cursor:pointer; font-size: 16px; }
+    .btn-login { background: #007BFF; color:#fff; margin-top:10px; }
+    .btn-register { background: #28a745; color:#fff; margin-top:15px; }
+    .login-footer { margin-top:20px; text-align:center; font-size:14px; color:#555; }
+    .message { margin:10px 0; text-align:center; }
+    .message.success { color:green; }
+    .message.error { color:red; }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h1>🚗 Cars Management System</h1>
+    <h2>Login</h2>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <input type="email" id="email" placeholder="Email" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Password" required>
+      </div>
+      <button type="submit" class="btn-login">Login</button>
+    </form>
+
+    <!-- زر التسجيل -->
+    <button id="btnRegister" class="btn-register">Create New Account</button>
+
+    <div class="login-footer">
+      <p id="msg" class="message"></p>
+      <p><strong>Demo Accounts:</strong></p>
+      <p>student1@edu.sa / 123456</p>
+      <p>staff1@univ.sa / 123456</p>
+    </div>
+  </div>
+
+  <script>
+    // إعادة التوجيه إذا يوجد توكن
+    const existingToken = localStorage.getItem("token");
+    if (existingToken) {
+      window.location.href = "dashboard.html";
+    }
+
+    // تسجيل الدخول
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msgElement = document.getElementById("msg");
+
+      msgElement.textContent = "";
+      msgElement.className = "message";
+
+      try {
+        const res = await fetch("http://localhost/cars_project/login.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.token) {
+          msgElement.textContent = "Login successful! Redirecting...";
+          msgElement.className = "message success";
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("userEmail", email);
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 1000);
+        } else {
+          msgElement.textContent = data.message || "Invalid credentials";
+          msgElement.className = "message error";
+        }
+      } catch (err) {
+        msgElement.textContent = "Error: Cannot reach server";
+        msgElement.className = "message error";
+      }
+    });
+
+    // زر الانتقال إلى register.html
+    document.getElementById("btnRegister").addEventListener("click", () => {
+      window.location.href = "register.html";
+    });
+  </script>
+
+</body>
+</html>

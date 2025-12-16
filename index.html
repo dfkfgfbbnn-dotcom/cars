@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cars Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login Section -->
+    <div id="loginSection" class="auth-section">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1><i class="fas fa-car"></i> Cars Management</h1>
+                <p>Please login to access the system</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="showTab('login')">Login</button>
+                <button class="tab-btn" onclick="showTab('register')">Register</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button onclick="login()" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <div id="loginError" class="error-message"></div>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" placeholder="Choose a password" required>
+                </div>
+                <button onclick="register()" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Register
+                </button>
+                <div id="registerError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard (Hidden until login) -->
+    <div id="dashboard" class="hidden">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-car"></i>
+                <span>Cars Management</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#" onclick="showPage('home')">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="#" onclick="showPage('cars')">
+                    <i class="fas fa-car"></i> Cars
+                </a>
+                <a href="#" onclick="showPage('addCar')" id="addCarLink" class="hidden">
+                    <i class="fas fa-plus"></i> Add Car
+                </a>
+                <div class="user-info">
+                    <span id="userWelcome"></span>
+                    <button onclick="logout()" class="btn btn-outline">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Page -->
+            <div id="homePage" class="page">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Welcome to Cars Management System</p>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalCars">0</h3>
+                            <p>Total Cars</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-gas-pump"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="fuelTypes">0</h3>
+                            <p>Fuel Types</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="colorTypes">0</h3>
+                            <p>Colors</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recent-cars">
+                    <h2>Recent Cars</h2>
+                    <div id="recentCars" class="cars-grid">
+                        <!-- Cars will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cars Page -->
+            <div id="carsPage" class="page hidden">
+                <div class="page-header">
+                    <h1>All Cars</h1>
+                    <p>Browse our car collection</p>
+                </div>
+                
+                <!-- Filters -->
+                <div class="filters">
+                    <input type="text" id="searchBrand" placeholder="Search by brand...">
+                    <input type="number" id="minYear" placeholder="Min Year" min="2000" max="2023">
+                    <input type="number" id="maxYear" placeholder="Max Year" min="2000" max="2023">
+                    <select id="filterColor">
+                        <option value="">All Colors</option>
+                        <option value="White">White</option>
+                        <option value="Black">Black</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Blue">Blue</option>
+                        <option value="Red">Red</option>
+                    </select>
+                    <button onclick="loadCars()" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                
+                <!-- Cars Grid -->
+                <div id="carsContainer" class="cars-grid">
+                    <!-- Cars will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Add Car Page -->
+            <div id="addCarPage" class="page hidden">
+                <div class="page-header">
+                    <h1>Add New Car</h1>
+                    <p>Add a new car to the collection</p>
+                </div>
+                
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="carBrand">Brand *</label>
+                        <input type="text" id="carBrand" placeholder="Toyota, Honda, etc." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carModel">Model *</label>
+                        <input type="text" id="carModel" placeholder="Corolla, Civic, etc." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carYear">Year *</label>
+                        <input type="number" id="carYear" placeholder="2023" min="2000" max="2023" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carColor">Color</label>
+                        <select id="carColor">
+                            <option value="">Select Color</option>
+                            <option value="White">White</option>
+                            <option value="Black">Black</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Blue">Blue</option>
+                            <option value="Red">Red</option>
+                            <option value="Gray">Gray</option>
+                            <option value="Yellow">Yellow</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carFuel">Fuel Type</label>
+                        <select id="carFuel">
+                            <option value="Gasoline">Gasoline</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Electric">Electric</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carPrice">Price ($)</label>
+                        <input type="number" id="carPrice" placeholder="25000" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carImage">Image URL</label>
+                        <input type="text" id="carImage" placeholder="https://example.com/image.jpg">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carDescription">Description</label>
+                        <textarea id="carDescription" rows="3" placeholder="Car description..."></textarea>
+                    </div>
+                    
+                    <button onclick="addCar()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Car
+                    </button>
+                    
+                    <div id="addCarMessage" class="message"></div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Cars Management System &copy; 2023 | API: <span id="apiStatus">Disconnected</span></p>
+        </footer>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>

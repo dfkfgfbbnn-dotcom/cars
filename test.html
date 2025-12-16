@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cars API Test - Cards</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Cars API Test</h2>
+
+<div style="text-align:center;">
+    <button onclick="login()">Login</button>
+    <button onclick="toggleAddForm()">Add Car</button>
+    <button onclick="getAllCars()">Get All Cars</button>
+    <button onclick="toggleGetForm()">Get One Car</button>
+</div>
+
+<div id="addCarForm">
+    <h3>Add Car</h3>
+    <input type="text" id="carName" placeholder="Name">
+    <input type="text" id="carModel" placeholder="Model">
+    <input type="text" id="carPrice" placeholder="Price">
+    <button onclick="addCar()">Submit Car</button>
+</div>
+
+<div id="getCarForm">
+    <h3>Get One Car</h3>
+    <input type="number" id="carId" placeholder="Car ID">
+    <button onclick="getOneCar()">Search Car</button>
+</div>
+
+<p id="output"></p>
+
+<div id="carsContainer"></div>
+
+<script>
+let token="";
+
+function showOutput(obj){
+    document.getElementById("output").textContent = JSON.stringify(obj,null,2);
+    console.log(obj);
+}
+
+// Login
+function login(){
+    showOutput("Logging in...");
+    fetch("http://localhost/Wbs_project/api.php?action=login",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({username:"admin", password:"12345"})
+    }).then(r=>r.json()).then(data=>{
+        showOutput(data);
+        if(data.token){ token=data.token; alert("Login success"); }
+        else alert("Login failed");
+    }).catch(err=>{ showOutput(err); alert("Network error"); });
+}
+
+// Toggle forms
+function toggleAddForm(){ const f=document.getElementById("addCarForm"); f.style.display=f.style.display==="none"?"block":"none"; }
+function toggleGetForm(){ const f=document.getElementById("getCarForm"); f.style.display=f.style.display==="none"?"block":"none"; }
+
+// Add Car
+function addCar(){
+    if(!token){ alert("Login first!"); return; }
+    const name=document.getElementById("carName").value.trim();
+    const model=document.getElementById("carModel").value.trim();
+    const price=document.getElementById("carPrice").value.trim();
+    if(!name||!model||!price){ alert("All fields required"); return; }
+
+    fetch("http://localhost/Wbs_project/api.php?action=add",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Token":token },
+        body:JSON.stringify({name,model,price})
+    }).then(r=>r.json()).then(data=>{
+        showOutput(data);
+        if(data.message){ 
+            alert(data.message);
+            document.getElementById("carName").value="";
+            document.getElementById("carModel").value="";
+            document.getElementById("carPrice").value="";
+            getAllCars();
+        } else if(data.error) alert(data.error);
+    }).catch(err=>{ showOutput(err); alert("Network error"); });
+}
+
+// Get all cars
+function getAllCars(){
+    fetch("http://localhost/Wbs_project/api.php")
+    .then(r=>r.json())
+    .then(data=>{
+        displayCars(data);
+        showOutput(data);
+    });
+}
+
+// Get one car
+function getOneCar(){
+    const id=document.getElementById("carId").value.trim();
+    if(!id){ alert("Enter Car ID"); return; }
+    fetch(`http://localhost/Wbs_project/api.php?id=${id}`)
+    .then(r=>r.json())
+    .then(data=>{
+        displayCars([data]);
+        showOutput(data);
+    });
+}
+
+// Display cars as cards
+function displayCars(cars){
+    const container = document.getElementById("carsContainer");
+    container.innerHTML="";
+    (cars||[]).forEach(car=>{
+        if(!car) return;
+        const div=document.createElement("div");
+        div.className="carCard";
+        div.innerHTML = `<h4>${car.name||"No Name"}</h4>
+                         <p>Model: ${car.model||"N/A"}</p>
+                         <p>Price: ${car.price||"N/A"}</p>
+                         <p>ID: ${car.id||""}</p>`;
+        container.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
